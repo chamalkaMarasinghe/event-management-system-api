@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "5004:5004"
+    depends_on:
+      - auth-service
+      - events-service
+      - notification-service
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "5005:5005"
+
+  events-service:
+    build: ./services/event-service
+    ports:
+      - "5006:5006"
+
+  notification-service:
+    build: ./services/notification-service
+    ports:
+      - "5007:5007"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
