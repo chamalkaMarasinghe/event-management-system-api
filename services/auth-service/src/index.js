@@ -144,7 +144,7 @@ http.listen(PORT, async function () {
 
     // NOTE: startup logics =============================
     await startupMethod();
-    console.log(`Service listening on port ${PORT}`);
+    console.log(`Auth Service listening on port ${PORT}`);
   } catch (err) {
     console.log(err);
   }

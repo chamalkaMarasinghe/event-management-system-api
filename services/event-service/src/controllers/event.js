@@ -1,5 +1,6 @@
 const { default: mongoose, Mongoose } = require("mongoose");
 const dayjs = require("dayjs");
+const amqp = require("amqplib");
 const {
     RecordNotFoundError,
     ActionNotAllowedError,
@@ -24,6 +25,28 @@ const {formatTimeDuration} = require("../utils/formatTimeDuration");
 
 const utc = require('dayjs/plugin/utc');
 dayjs.extend(utc);
+
+let channel, connection;
+
+// NOTE: establish rabbitmq connection
+async function connectRabbitMqWithretry(retry = 5, delay = 3000){
+    while(retry){
+        try {
+            connection = await amqp.connect("amqp://localhost:5672");            
+            channel = await connection.createChannel();
+            await channel.assertQueue("");
+            console.log("Connected to RabbitMQ");
+            return;
+        } catch (error) {
+            console.error("RabbitMQ Connection Error : " , error.message);
+            retry --;
+            console.error("Retrying again: " , retry);
+            await new Promise(res => setTimeout(res, delay));
+            
+        }
+    }
+}
+connectRabbitMqWithretry();
 
 exports.createNewEvent = catchAsync(async (req, res, next) => {
     let {
@@ -447,6 +470,19 @@ exports.bookEventByUser = catchAsync(async (req, res, next) => {
     const saveEventDetails = await event.save();
     if (!saveEventDetails) return next(new FailureOccurredError("Booking The Event"));
 
+    const userForMq = {
+        id: user?._id,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        email: user?.email,
+        event: event
+    }
+    console.log("trying to send message to the queue >>>>>>>>>>");
+    
+    channel.sendToQueue("user_booked_event", Buffer.from(JSON. stringify(userForMq)));
+    
+    console.log("successed send message to the queue >>>>>>>>>>");
+
     return handleResponse(
         res,
         200,
@@ -454,7 +490,6 @@ exports.bookEventByUser = catchAsync(async (req, res, next) => {
         `/payment-successful?status=success&event=${saveEventDetails?._id}&amount=${saveEventDetails?.price}&paymentMethod=${commonConstants.eventPaymentMethods.INHOUSE}&bookingId=${eventbookingid || ""}&paymentIntentId=`
     );
 });
-
 
 // NOTE : GET event organizer
 exports.getEventOrganizer = catchAsync(async(req,res,next)=>{
