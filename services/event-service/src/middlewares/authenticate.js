@@ -1,4 +1,6 @@
 const jwt = require("jsonwebtoken");
+const axios = require("axios");
+
 
 const currentEnvironment = require("../config/environmentConfig");
 const JWT_SECRET = currentEnvironment.JWT_SECRET;
@@ -27,7 +29,9 @@ exports.authenticate = (options = {}) => catchAsync(async (req, res, next) => {
 
     let user = null;
 
-    user = await User.findById(decodedToken._id).select("-password");
+    // user = await User.findById(decodedToken._id).select("-password");
+    const userProfileRes = await axios.get(`${currentEnvironment.AUTH_SERVICE}/api/v${currentEnvironment.API_VERSION}/auth/user/${decodedToken._id}`)
+    user = userProfileRes?.data?.data;
 
     if(!user){
         user = await ServiceProvider.findById(decodedToken?._id);

@@ -125,7 +125,7 @@ process.on("uncaughtException", (e) => {
 const http = require("http").Server(app);
 const socketIO = require("socket.io")(http, {
   cors: {
-    origin: [`${CLIENT}`, `${ADMIN}`, `${SERVICE_PROVIDER}`],
+    origin: [`${CLIENT}`],
   },
 });
 

@@ -18,9 +18,6 @@ const {
   RecordNotFoundError,
   PasswordMismatchError,
 } = require("../utils/errors/CustomErrors");
-const commonConstants = require("../constants/commonConstants");
-const { getUserInSignInWithDistanceWishlist, getServiceProEventMetrics } = require("../queries/event");
-const ServiceProvider = require("../models/serviceProvider");
 const JWT_SECRET = currentEnvironment.JWT_SECRET;
 const SIGNIN_OTP_VERIFICATION = currentEnvironment.SIGNIN_OTP_VERIFICATION;
 
@@ -143,12 +140,6 @@ exports.signin = catchAsync(async (req, res, next) => {
       wishList: user?.wishList || [],
     };
 
-    // const userX = await User.aggregate(getUserInSignInWithDistanceWishlist({
-    //   email,
-    //   userLongitude: longitude,
-    //   userLatitude: latitude,
-    // }));
-
     userData.wishList = []
 
     return handleResponse(res, 200, "Signed-in Successfully", {
@@ -157,4 +148,22 @@ exports.signin = catchAsync(async (req, res, next) => {
       userData,
     });
   }
+});
+
+exports.getUser = catchAsync(async(req,res,next)=>{
+
+    const userId = req?.params?.id;
+    
+    const user = await User.findById(userId).select("-password");
+
+    if(!user || user?.isDeleted || user?.isDeleted){
+        return next(new RecordNotFoundError("User Profile"));
+    }
+
+    return handleResponse(
+        res,
+        200, 
+        "User Info get Successfully", 
+        user
+    );
 });

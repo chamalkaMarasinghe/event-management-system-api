@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const axios = require("axios");
 // const { catchAsync } = require("../utils/catchAsync");
 // const handleResponse = require("../utils/response");
 const User = require("../models/user");
@@ -20,7 +21,9 @@ exports.authenticateSocket = async (socket, next) => {
 
     let user = null;
 
-    user = await User.findById(userDecoded?._id);
+    // user = await User.findById(userDecoded?._id);
+    const userProfileRes = await axios.get(`${currentEnvironment.AUTH_SERVICE}/api/v${currentEnvironment.API_VERSION}/auth/user/${userDecoded?._id}`)
+    user = userProfileRes?.data?.data;
 
     if(!user){
         user = await ServiceProvider.findById(userDecoded?._id);

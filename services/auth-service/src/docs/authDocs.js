@@ -87,4 +87,34 @@ module.exports = {
             }
         },
     },
+    "/auth/user/{id}":{
+        get: {
+            summary: "Get an user by id",
+            tags: ["Authentication-User"],
+            parameters: [
+                {
+                    name:"id",
+                    in:"path",
+                    required: true,
+                    description: "The id is required.",
+                    schema: {
+                        type: "string",
+                        example: "6862ac2b4fee7b17ee6313f4",
+                    },
+                },
+            ],
+            requestBody: {
+                required: false,
+                content: {},
+            },
+            responses: {
+                200: {
+                    description: "Successful response"
+                },
+                400: {
+                    description: "Bad Request"
+                }
+            }
+        },
+    },
 };

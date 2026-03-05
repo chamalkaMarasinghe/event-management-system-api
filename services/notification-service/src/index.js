@@ -3,6 +3,7 @@ const cors = require("cors");
 const amqp = require("amqplib");
 require("dotenv").config({ path: "../.env" });
 const { sendNotifications } = require("./utils/notifications/notifications");
+const currentEnvironment = require("./config/environmentConfig");
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.get("/", async (req, res, next) => {
 // NOTE: consuming queue messages - listening for user_booked-event
 async function startConsuming() {
   try {
-    connection = await amqp.connect("amqp://localhost:5672");
+    connection = await amqp.connect(`amqp://${currentEnvironment.RABBIT_MQ_URL}`);
     channel = await connection.createChannel();
 
     await channel.assertQueue("user_booked_event");

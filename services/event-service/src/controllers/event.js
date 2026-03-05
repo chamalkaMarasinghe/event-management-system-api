@@ -1,5 +1,6 @@
 const { default: mongoose, Mongoose } = require("mongoose");
 const dayjs = require("dayjs");
+const axios = require("axios");
 const amqp = require("amqplib");
 const {
     RecordNotFoundError,
@@ -32,9 +33,9 @@ let channel, connection;
 async function connectRabbitMqWithretry(retry = 5, delay = 3000){
     while(retry){
         try {
-            connection = await amqp.connect("amqp://localhost:5672");            
+            connection = await amqp.connect(`amqp://${currentEnvironment.RABBIT_MQ_URL}`);            
             channel = await connection.createChannel();
-            await channel.assertQueue("");
+            await channel.assertQueue("user_booked_event");
             console.log("Connected to RabbitMQ");
             return;
         } catch (error) {
@@ -59,9 +60,13 @@ exports.createNewEvent = catchAsync(async (req, res, next) => {
     const userId = req?.user?._id;
 
     // creating service provider profile
-    const userProfile = await User.findById(userId);
+    // const userProfile = await User.findById(userId);
+    const userProfileRes = await axios.get(`${currentEnvironment.AUTH_SERVICE}/api/v${currentEnvironment.API_VERSION}/auth/user/${userId}`)
+    const userProfile = userProfileRes?.data?.data;
+
     const servicepro = await ServiceProvider.findOne({id: userProfile?.id});
     let serviceProId = null;
+
     if(!servicepro){
         const newId = await getNewID(commonConstants.documentCounters.SERVICE_PRO);
         const newServicePro = await ServiceProvider.create({
@@ -287,112 +292,15 @@ exports.getEventById = catchAsync(async(req,res,next)=>{
     });
 })
 
-// NOTE: Get all participants of a single event
-exports.getAllAttendeesOfSingleEvent = catchAsync( async(req, res, next)=>{
-    let {
-        month,
-        limit,
-        offset,
-    } = req.query;
-    let { id } = req?.params;
-
-    const userId = req?.user?._id;
-
-    if (offset && !limit) {
-        limit = 10;
-    } if (!offset && limit) {
-        offset = 0;
-    }
-
-    offset = Number(offset);
-    limit = Number(limit);
-
-  // NOTE: decides whether the request is expecting a paginated response or entire collection documents
-    const isPaginated = (limit) && (limit > 0);
-
-    const pipeline = getEventAttendeesPipeline({
-        userId,
-        eventId: id,
-        month,
-        limit,
-        skip: offset,
-    });
-
-    const eventAggregation = await Event.aggregate(pipeline);
-
-    let events = {data: isPaginated ? eventAggregation[0]?.paginatedData : eventAggregation };
-    
-    if(isPaginated){
-        events = {
-            ...events,
-            currentParticipantCount: eventAggregation[0]?.metaData[0]?.totalCount,
-            pagination : paginationResponse({
-                offset: offset,
-                limit: limit,
-                totalDocuments: eventAggregation[0]?.metaData[0]?.totalCount
-            })
-        }
-    }
-    
-    return handleResponse(res, 200, "Event Attendees Fetched Successfully", events);
-})
-
-// NOTE: Get all participants of all event
-exports.getAllAttendeesOfAllEvents = catchAsync( async(req, res, next)=>{
-    let {
-        title,
-        status,
-        limit,
-        offset,
-    } = req.query;
-
-    const userId = req?.user?._id;
-
-    if (offset && !limit) {
-        limit = 10;
-    } if (!offset && limit) {
-        offset = 0;
-    }
-
-    offset = Number(offset);
-    limit = Number(limit);
-
-  // NOTE: decides whether the request is expecting a paginated response or entire collection documents
-    const isPaginated = (limit) && (limit > 0);
-
-    const pipeline = getAllEventAttendeesPipeline({
-        title,
-        userId,
-        status,
-        limit,
-        skip: offset,
-    });
-
-    const eventAggregation = await Event.aggregate(pipeline);
-
-    let events = {data: isPaginated ? eventAggregation[0]?.paginatedData : eventAggregation };
-    
-    if(isPaginated){
-        events = {
-            ...events,
-            timelineStatus: events?.data?.[0]?.timelineStatus,
-            pagination : paginationResponse({
-                offset: offset,
-                limit: limit,
-                totalDocuments: eventAggregation[0]?.metaData[0]?.totalCount
-            })
-        }
-    }
-    
-    return handleResponse(res, 200, "All Event Attendees Fetched Successfully", events);
-})
-
 // NOTE: user booking an event
 exports.bookEventByUser = catchAsync(async (req, res, next) => {
     const userId = req?.user?._id;
     const { eventId, platform = "web" } = req.body;
 
-    const user = await User.findById(userId);
+    // const user = await User.findById(userId);
+    const userProfileRes = await axios.get(`${currentEnvironment.AUTH_SERVICE}/api/v${currentEnvironment.API_VERSION}/auth/user/${userId}`)
+    const user = userProfileRes?.data?.data;
+    
     if (!user || user?.isDeleted) {
         return next(new RecordNotFoundError("User"));
     }
@@ -435,36 +343,6 @@ exports.bookEventByUser = catchAsync(async (req, res, next) => {
             serviceProviderAmount: event?.price,
             userSelectedPaymentMethod: commonConstants.userSelectedPaymentMethod.INHOUSE,
         });
-    // RECURRING booking
-    } else if (event?.schedulingType === commonConstants.schedulingType.RECURRING) {
-        const now = new Date();
-        const indexToUpdate = event?.recurringEventsDates?.findIndex(rec => rec?.start >= now);
-        if (indexToUpdate === -1) return next(new CustomError("No upcoming recurring events to book"));
-
-        if (event?.recurringEventsDates?.[indexToUpdate]?.participants?.some(p => p?.user?.toString() === userId?.toString())) {
-        return next(new CustomError("Event was already subscribed"));
-        }
-
-        if (event?.maximumAttendees <= event?.recurringEventsDates?.[indexToUpdate]?.participants?.length) {
-        return next(new CustomError("Maximum Attendees Exceed"));
-        }
-
-        const newBookingId = await getNewID(commonConstants.documentCounters.BOOKING);
-        if (!newBookingId) return next(new FailureOccurredError("ID Generation"));
-
-        eventbookingid = newBookingId;
-
-        event?.recurringEventsDates?.[indexToUpdate]?.participants?.push({
-            user: userId,
-            date: new Date()?.toISOString(),
-            bookingId: newBookingId,
-            paymentStatus: commonConstants.paymentStatus.PENDING,
-            paymentAmount: event?.price,
-            serviceProviderAmount: event?.price,
-            userSelectedPaymentMethod: commonConstants.userSelectedPaymentMethod.INHOUSE,
-        });
-    } else {
-        return next(new CustomError("Invalid Event Scheduling Type"));
     }
 
     const saveEventDetails = await event.save();
@@ -479,7 +357,9 @@ exports.bookEventByUser = catchAsync(async (req, res, next) => {
     }
     console.log("trying to send message to the queue >>>>>>>>>>");
     
-    channel.sendToQueue("user_booked_event", Buffer.from(JSON. stringify(userForMq)));
+    if(channel){
+        channel?.sendToQueue("user_booked_event", Buffer.from(JSON. stringify(userForMq)));
+    }
     
     console.log("successed send message to the queue >>>>>>>>>>");
 

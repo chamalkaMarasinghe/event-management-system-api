@@ -9,6 +9,7 @@ const env_configs = {
     PORT: process.env.PORT,
     REDIS_HOST: process.env.REDIS_HOST,
     REDIS_PORT: process.env.REDIS_PORT,
+    RABBIT_MQ_URL: process.env.RABBIT_MQ_URL,
     DB_URI: process.env.DB_URI,
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     JWT_SECRET: process.env.JWT_SECRET,
