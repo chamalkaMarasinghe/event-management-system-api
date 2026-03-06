@@ -16,7 +16,7 @@ app.use(
 
 app.get("/", async (req, res, next) => {
   try {
-    return res.status(200).json({ status: 200, message: "Welcome to Api gateway !" });
+    return res.status(200).json({ status: 200, message: `API Version - ${process.env.API_VERSION} : Welcome to Api gateway !` });
   } catch (error) {
     return next(error);
   }

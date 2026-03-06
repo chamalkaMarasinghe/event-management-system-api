@@ -17,7 +17,7 @@ app.use(
 
 app.get("/", async (req, res, next) => {
   try {
-    return res.status(200).json({ status: 200, message: "Welcome to Notification service !" });
+    return res.status(200).json({ status: 200, message: `API Version - ${currentEnvironment.API_VERSION} : Welcome to Notification service !` });
   } catch (error) {
     return next(error);
   }
