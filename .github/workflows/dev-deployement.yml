@@ -23,3 +23,6 @@ jobs:
             --data-urlencode BRANCH=${{ vars.BRANCH }} \
             --data-urlencode DOPPLER_PROJECT=${{ vars.DOPPLER_PROJECT }} \
             --data-urlencode DOPPLER_CONFIG=${{ vars.DOPPLER_CONFIG_GATEWAY_SERVICE }}
+            --data-urlencode DOPPLER_CONFIG=${{ vars.DOPPLER_CONFIG_AUTH_SERVICE }}
+            --data-urlencode DOPPLER_CONFIG=${{ vars.DOPPLER_CONFIG_EVENT_SERVICE }}
+            --data-urlencode DOPPLER_CONFIG=${{ vars.DOPPLER_CONFIG_NOTIFICATION_SERVICE }}
