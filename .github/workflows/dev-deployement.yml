@@ -1,30 +1,25 @@
-name: Trigger Jenkins
+name: Trigger Jenkinss
+
 on:
   push:
     branches:
       - main
+
 jobs:
   trigger-jenkins:
     runs-on: ubuntu-latest
     environment: dev
+
     steps:
       - name: Call Jenkins event mgt microservices api ci-cd pipeline
         run: |
-          # Debug: check what crumb endpoint returns
-          echo "--- Crumb response ---"
-          curl -s -u "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
-            "http://98.70.40.12/crumbIssuer/api/json"
-          echo ""
-          echo "--- Triggering Jenkins ---"
-
-          curl -v -X POST \
-            "http://98.70.40.12/job/event%20mgt%20microservices%20api%20ci-cd%20pipeline/buildWithParameters?token=${{ secrets.JENKINS_TRIGGER_SECRET }}" \
-            -u "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
-            -H "Jenkins-Crumb: none" \
-            --data-urlencode "REMOTE_HOST=${{ vars.REMOTE_HOST }}" \
-            --data-urlencode "REMOTE_USER=${{ vars.REMOTE_USER }}" \
-            --data-urlencode "APP_DIR=${{ vars.APP_DIR }}" \
-            --data-urlencode "REPO_URL=${{ vars.REPO_URL }}" \
-            --data-urlencode "BRANCH=${{ vars.BRANCH }}" \
-            --data-urlencode "DOPPLER_PROJECT=${{ vars.DOPPLER_PROJECT }}" \
-            --data-urlencode "DOPPLER_CONFIG=${{ vars.DOPPLER_CONFIG_GATEWAY_SERVICE }}"
+          curl -X POST "http://98.70.40.12/job/event%20mgt%20microservices%20api%20ci-cd%20pipeline/buildWithParameters" \
+            --user "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
+            --data-urlencode token=${{ secrets.JENKINS_TRIGGER_SECRET }} \
+            --data-urlencode REMOTE_HOST=${{ vars.REMOTE_HOST }} \
+            --data-urlencode REMOTE_USER=${{ vars.REMOTE_USER }} \
+            --data-urlencode APP_DIR=${{ vars.APP_DIR }} \
+            --data-urlencode REPO_URL=${{ vars.REPO_URL }} \
+            --data-urlencode BRANCH=${{ vars.BRANCH }} \
+            --data-urlencode DOPPLER_PROJECT=${{ vars.DOPPLER_PROJECT }} \
+            --data-urlencode DOPPLER_CONFIG=${{ vars.DOPPLER_CONFIG_GATEWAY_SERVICE }}
