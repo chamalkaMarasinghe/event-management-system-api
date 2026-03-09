@@ -11,7 +11,7 @@ jobs:
     environment: dev
 
     steps:
-      - name: Call Jenkins Build and Deploy Pipeline
+      - name: Call Jenkins event mgt microservices api ci-cd pipeline
         run: |
           curl -X POST "http://98.70.40.12/job/event%20mgt%20microservices%20api%20ci-cd%20pipeline/buildWithParameters" \
             --user "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
