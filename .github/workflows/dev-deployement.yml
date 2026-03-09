@@ -1,0 +1,28 @@
+name: Trigger Jenkinss
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-jenkins:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Call Jenkins event mgt microservices api ci-cd pipeline
+        run: |
+          curl -X POST "http://98.70.40.12/job/event%20mgt%20microservices%20api%20ci-cd%20pipeline/buildWithParameters" \
+            --user "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
+            --data-urlencode token=${{ secrets.JENKINS_TRIGGER_SECRET }} \
+            --data-urlencode REMOTE_HOST=${{ vars.REMOTE_HOST }} \
+            --data-urlencode REMOTE_USER=${{ vars.REMOTE_USER }} \
+            --data-urlencode APP_DIR=${{ vars.APP_DIR }} \
+            --data-urlencode REPO_URL=${{ vars.REPO_URL }} \
+            --data-urlencode BRANCH=${{ vars.BRANCH }} \
+            --data-urlencode DOPPLER_PROJECT=${{ vars.DOPPLER_PROJECT }} \
+            --data-urlencode DOPPLER_CONFIG_GATEWAY_SERVICE=${{ vars.DOPPLER_CONFIG_GATEWAY_SERVICE }} \
+            --data-urlencode DOPPLER_CONFIG_AUTH_SERVICE=${{ vars.DOPPLER_CONFIG_AUTH_SERVICE }} \
+            --data-urlencode DOPPLER_CONFIG_EVENT_SERVICE=${{ vars.DOPPLER_CONFIG_EVENT_SERVICE }} \
+            --data-urlencode DOPPLER_CONFIG_NOTIFICATION_SERVICE=${{ vars.DOPPLER_CONFIG_NOTIFICATION_SERVICE }}
