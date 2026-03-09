@@ -26,7 +26,6 @@ app.get("/", async (req, res, next) => {
 // NOTE: consuming queue messages - listening for user_booked-event
 async function startConsuming() {
   try {
-    console.log(`amqp://${currentEnvironment.RABBIT_MQ_URL}`);
     let retry = 5;
     let connection = null, channel = null;
 
@@ -36,8 +35,6 @@ async function startConsuming() {
         channel = await connection?.createChannel();
         await channel.assertQueue("user_booked_event");
         console.log("Notification Service is listening to messages");
-        console.log(channel);
-        // return;
         retry = 0
       } catch (error) {
         console.error("Retrying RabbitMQ Connection Error : " , error.message);
@@ -46,14 +43,6 @@ async function startConsuming() {
         await new Promise(res => setTimeout(res, 3000));
       }
     }
-    
-    // connection = await amqp.connect(`amqp://${currentEnvironment.RABBIT_MQ_URL}`);
-    // channel = await connection.createChannel();
-
-    // await channel.assertQueue("user_booked_event");
-    // console.log("Notification Service is listening to messages");
-    console.log("channel");
-    console.log(channel);
     
     if(channel){
       console.log("inside channel block");
