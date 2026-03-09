@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Call Jenkins event mgt microservices api ci-cd pipeline
         run: |
+          CRUMB=$(curl -s "http://98.70.40.12/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)" \
+          --user "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}") 
+          
           curl -X POST "http://98.70.40.12/job/event%20mgt%20microservices%20api%20ci-cd%20pipeline/buildWithParameters" \
             --user "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
             --data-urlencode token=${{ secrets.JENKINS_TRIGGER_SECRET }} \
