@@ -36,6 +36,7 @@ async function startConsuming() {
         channel = await connection?.createChannel();
         await channel.assertQueue("user_booked_event");
         console.log("Notification Service is listening to messages");
+        console.log(channel);
         return;
       } catch (error) {
         console.error("Retrying RabbitMQ Connection Error : " , error.message);
@@ -50,14 +51,18 @@ async function startConsuming() {
 
     // await channel.assertQueue("user_booked_event");
     // console.log("Notification Service is listening to messages");
-
+    console.log("channel");
+    console.log(channel);
+    
     if(channel){
+      console.log("inside channel block");
+      
       channel?.consume("user_booked_event", (msg) => {      
         const data = JSON.parse(msg.content.toString());
         // console.log("Notification: NEW DATA: ", data);
 
         // NOTE: sending confirmation email to the user
-
+        console.log("attempting to send mail");
         sendNotifications({
           isSendingEmail: true,
           emailOptions: {
