@@ -37,7 +37,8 @@ async function startConsuming() {
         await channel.assertQueue("user_booked_event");
         console.log("Notification Service is listening to messages");
         console.log(channel);
-        return;
+        // return;
+        retry = 0
       } catch (error) {
         console.error("Retrying RabbitMQ Connection Error : " , error.message);
         retry --;
