@@ -10,16 +10,17 @@ jobs:
     steps:
       - name: Call Jenkins event mgt microservices api ci-cd pipeline
         run: |
-          CRUMB=$(curl -s -u "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
-            "http://98.70.40.12/crumbIssuer/api/json" \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['crumbRequestField']+':'+d['crumb'])")
-
-          echo "Crumb: $CRUMB"
+          # Debug: check what crumb endpoint returns
+          echo "--- Crumb response ---"
+          curl -s -u "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
+            "http://98.70.40.12/crumbIssuer/api/json"
+          echo ""
+          echo "--- Triggering Jenkins ---"
 
           curl -v -X POST \
             "http://98.70.40.12/job/event%20mgt%20microservices%20api%20ci-cd%20pipeline/buildWithParameters?token=${{ secrets.JENKINS_TRIGGER_SECRET }}" \
             -u "${{ vars.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
-            -H "$CRUMB" \
+            -H "Jenkins-Crumb: none" \
             --data-urlencode "REMOTE_HOST=${{ vars.REMOTE_HOST }}" \
             --data-urlencode "REMOTE_USER=${{ vars.REMOTE_USER }}" \
             --data-urlencode "APP_DIR=${{ vars.APP_DIR }}" \
