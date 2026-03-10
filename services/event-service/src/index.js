@@ -77,7 +77,7 @@ app.use(
 // NOTE: testing route: verifing the api running or not
 app.get("/", async (req, res, next) => {
   try {
-    return handleResponse(res, 200, `API Version - ${currentEnvironment.API_VERSION} : Welcome to Event service !`);
+    return handleResponse(res, 200, `API Version - ${currentEnvironment.API_VERSION} : Welcome to Event service: latest !`);
   } catch (error) {
     return next(error);
   }
