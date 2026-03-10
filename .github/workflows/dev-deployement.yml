@@ -25,4 +25,5 @@ jobs:
             --data-urlencode DOPPLER_CONFIG_GATEWAY_SERVICE=${{ vars.DOPPLER_CONFIG_GATEWAY_SERVICE }} \
             --data-urlencode DOPPLER_CONFIG_AUTH_SERVICE=${{ vars.DOPPLER_CONFIG_AUTH_SERVICE }} \
             --data-urlencode DOPPLER_CONFIG_EVENT_SERVICE=${{ vars.DOPPLER_CONFIG_EVENT_SERVICE }} \
+            --data-urlencode DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }} \
             --data-urlencode DOPPLER_CONFIG_NOTIFICATION_SERVICE=${{ vars.DOPPLER_CONFIG_NOTIFICATION_SERVICE }}
