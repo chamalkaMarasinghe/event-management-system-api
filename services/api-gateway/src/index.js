@@ -16,7 +16,7 @@ app.use(
 
 app.get("/", async (req, res, next) => {
   try {
-    return res.status(200).json({ status: 200, message: `API Version - ${process.env.API_VERSION} : Welcome to Api gateway :: latest !` });
+    return res.status(200).json({ status: 200, message: `API Version - ${process.env.API_VERSION} : Welcome to Api gateway :: latest : sonarCloud !` });
   } catch (error) {
     return next(error);
   }
